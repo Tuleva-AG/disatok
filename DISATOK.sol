@@ -37,14 +37,14 @@ import "./contracts/Ownable.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-contract DisaTokDemo is Ownable, IERC20, IERC20Metadata {
+contract Disatok is Ownable, IERC20, IERC20Metadata {
     
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
     mapping(address => bool) private _feeExcludes;
 
-    string private _name = "DISATOK Demo";
-    string private _symbol = "DISA Demo";
+    string private _name = "DISATOK";
+    string private _symbol = "DISA";
     uint8 private _decimals = 8;
     uint private _totalSupply = 10000000 * 10**_decimals;
     uint private _maxTxAmount = _totalSupply;
