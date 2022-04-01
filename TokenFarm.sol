@@ -11,6 +11,7 @@ contract TokenFarm is Ownable {
         uint256 duration;
         uint256 interest;
         uint256 amount;
+        bool paidout;
     }
 
     string private _name = 'Disatok Token Farm';
@@ -54,6 +55,7 @@ contract TokenFarm is Ownable {
         item.amount = amount;
         item.duration = duration;
         item.interest = interest;
+        item.paidout = false;
         return item;
     }
 
@@ -167,6 +169,7 @@ contract TokenFarm is Ownable {
                 uint256 reward = item.amount * (item.interest / 100);
                 uint256 total = item.amount + reward;
                 disatok.transfer(item.owner, total);
+                item.paidout = true;
             }
         }
     }
