@@ -11,7 +11,7 @@ contract TokenFarm is Ownable {
         uint256 duration;
         uint256 interest;
         uint256 amount;
-        bool paidout;
+        uint256 status;
     }
 
     string private _name = 'Disatok Token Farm';
@@ -55,7 +55,7 @@ contract TokenFarm is Ownable {
         item.amount = amount;
         item.duration = duration;
         item.interest = interest;
-        item.paidout = false;
+        item.status = 1;
         return item;
     }
 
@@ -108,6 +108,10 @@ contract TokenFarm is Ownable {
 
     function getStakes() public view returns (StakeItem[] memory) {
         uint256 itemsCount = items.length;
+
+        if (owner() == msg.sender) {
+            return items;
+        }
 
         uint256 resultCount = 0;
         for (uint256 i = 0; i < itemsCount; i++) {
@@ -169,8 +173,21 @@ contract TokenFarm is Ownable {
                 uint256 reward = item.amount * (item.interest / 100);
                 uint256 total = item.amount + reward;
                 disatok.transfer(item.owner, total);
-                item.paidout = true;
+                item.status = 0;
             }
+        }
+    }
+
+    function issueToken(uint256 index) public onlyOwner {
+        StakeItem memory item = items[index];
+
+        if (item.end <= block.timestamp && item.amount > 0) {
+            uint256 reward = item.amount * (item.interest / 100);
+            uint256 total = item.amount + reward;
+            disatok.transfer(item.owner, total);
+            //Remove from balance
+            items[index].status = 0;
+            balance[item.owner] = balance[item.owner] - item.amount;
         }
     }
 }
