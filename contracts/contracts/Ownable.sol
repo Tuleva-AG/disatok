@@ -3,13 +3,12 @@
  * From: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol
  */
 
-
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.3.2 (access/Ownable.sol)
 
-pragma solidity 0.8.10;
+pragma solidity >=0.8.10;
 
-import "../utils/Context.sol";
+import '../utils/Context.sol';
 
 /**
  * @dev Contract module which provides a basic access control mechanism, where
@@ -46,7 +45,7 @@ abstract contract Ownable is Context {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        require(owner() == _msgSender(), 'Ownable: caller is not the owner');
         _;
     }
 
@@ -58,7 +57,7 @@ abstract contract Ownable is Context {
      * thereby removing any functionality that is only available to the owner.
      */
     function renounceOwnership() public virtual onlyOwner {
-        _transferOwnership(address(0));
+        revert('renounceOwnership is not supported, please transfer ownership');
     }
 
     /**
@@ -66,7 +65,7 @@ abstract contract Ownable is Context {
      * Can only be called by the current owner.
      */
     function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        require(newOwner != address(0), 'Ownable: new owner is the zero address');
         _transferOwnership(newOwner);
     }
 

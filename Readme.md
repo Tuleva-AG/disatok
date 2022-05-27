@@ -1,0 +1,1 @@
+run tests: truffle test
