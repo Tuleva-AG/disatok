@@ -189,7 +189,7 @@ contract("TokenFarm", accounts => {
     assert.equal(balanceFeeAfter - balanceFeeBefore, feeAmount, "difference fee: " + (feeAmount));
   });
 
-  it("owner transfer disa to user1", async () => {
+  it("owner transfer disa to user2", async () => {
     const sender = ownerAccount;
     const receiver = userAccount2;
     const amount = 88 * 10 ** _decimals;
@@ -398,7 +398,7 @@ contract("TokenFarm", accounts => {
     const index = 1;
     const issueToken = await tokenFarmInstance.issueToken(index, {from: sender}); 
     
-    const stakes0 = await tokenFarmInstance.itemsRewarded(0); 
+    const stakes0 = await tokenFarmInstance.items(index); 
     assert.equal(stakes0.owner, sender, "1 stake of user1");
   });
 
@@ -415,7 +415,7 @@ contract("TokenFarm", accounts => {
     const sender = userAccount2;
 
     const stakesOpen = await tokenFarmInstance.getStakes(true, {from: sender}); 
-    assert.equal(stakesOpen.length, 0, "0 stake were returned");
+    assert.equal(stakesOpen.length, 0, "0 stake were returned");    
     const stakesClosed = await tokenFarmInstance.getStakes(false, {from: sender}); 
     assert.equal(stakesClosed.length, 1, "1 stake is returned");
   });

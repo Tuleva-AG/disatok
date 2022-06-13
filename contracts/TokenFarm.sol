@@ -15,19 +15,19 @@ contract TokenFarm is Ownable {
         uint256 duration;
         uint256 interest;
         uint256 amount;
-        uint256 rewarded;
+        bool running;
     }
 
     Disatok public disatok;
 
     StakeItem[] public items;
-    StakeItem[] public itemsRewarded;
     address[] public stakers;
     uint256[] public durations;
     uint256 public minStakeAmount;
 
     mapping(address => uint256) public balance;
     mapping(uint256 => uint256) public interests;
+    mapping(address => bool) public hasStaked;
 
     constructor(Disatok _disatok, uint256 _minStakeAmount) {
         disatok = _disatok;
@@ -61,7 +61,7 @@ contract TokenFarm is Ownable {
         item.amount = amount;
         item.duration = duration;
         item.interest = interest;
-        item.rewarded = 0;
+        item.running = true;
         return item;
     }
 
@@ -74,7 +74,8 @@ contract TokenFarm is Ownable {
         require(interest > 0, 'duration is not supported');
 
         uint256 tokenfarmBalance = disatok.balanceOf(address(this));
-        require(tokenfarmBalance >= amount, 'staking contract balance is too low for this amount');
+        uint256 total = (amount * (100 + interest)) / 100;
+        require(tokenfarmBalance >= total, 'staking contract balance is too low for this amount');
 
         uint256 disatokBalance = disatok.balanceOf(msg.sender);
         require(disatokBalance >= amount, 'Amount exceeds balance');
@@ -85,40 +86,29 @@ contract TokenFarm is Ownable {
         balance[msg.sender] = balance[msg.sender] + item.amount;
 
         items.push(item);
+        // add user to stakers array *only* if they haven't staked already
+        if (!hasStaked[msg.sender]) {
+            stakers.push(msg.sender);
+        }
 
         return true;
     }
 
-    function getStakes(bool runningStakes) public view returns (StakeItem[] memory) {
-        return _getStakes(msg.sender, runningStakes);
+    function getStakes(bool running) public view returns (StakeItem[] memory) {
+        return _getStakes(msg.sender, running);
     }
 
-    function getStakesForAddress(address account, bool runningStakes) public view onlyOwner returns (StakeItem[] memory) {
-        return _getStakes(account, runningStakes);
+    function getStakesForAddress(address account, bool running) public view onlyOwner returns (StakeItem[] memory) {
+        return _getStakes(account, running);
     }
 
-    function getStakesOverview(bool runningStakes) public view onlyOwner returns (StakeItem[] memory) {
-        if (runningStakes) {
-            return items;
-        }
-        return itemsRewarded;
-    }
-
-    function _getStakes(address account, bool runningStakes) internal view returns (StakeItem[] memory) {
-        StakeItem[] memory _items;
-
-        if (runningStakes) {
-            _items = items;
-        } else {
-            _items = itemsRewarded;
-        }
-
-        uint256 itemsCount = _items.length;
+    function getStakesOverview(bool running) public view onlyOwner returns (StakeItem[] memory) {
+        uint256 itemsCount = items.length;
 
         uint256 resultCount = 0;
         for (uint256 i = 0; i < itemsCount; i++) {
-            StakeItem memory item = _items[i];
-            if (item.owner == account) {
+            StakeItem memory item = items[i];
+            if (item.running == running) {
                 resultCount++;
             }
         }
@@ -126,8 +116,31 @@ contract TokenFarm is Ownable {
         StakeItem[] memory results = new StakeItem[](resultCount);
         uint256 insertCounter = 0;
         for (uint256 i = 0; i < itemsCount; i++) {
-            StakeItem memory item = _items[i];
-            if (item.owner == account) {
+            StakeItem memory item = items[i];
+            if (item.running == running) {
+                results[insertCounter] = item;
+                insertCounter++;
+            }
+        }
+        return results;
+    }
+
+    function _getStakes(address account, bool running) internal view returns (StakeItem[] memory) {
+        uint256 itemsCount = items.length;
+
+        uint256 resultCount = 0;
+        for (uint256 i = 0; i < itemsCount; i++) {
+            StakeItem memory item = items[i];
+            if (item.owner == account && item.running == running) {
+                resultCount++;
+            }
+        }
+
+        StakeItem[] memory results = new StakeItem[](resultCount);
+        uint256 insertCounter = 0;
+        for (uint256 i = 0; i < itemsCount; i++) {
+            StakeItem memory item = items[i];
+            if (item.owner == account && item.running == running) {
                 results[insertCounter] = item;
                 insertCounter++;
             }
@@ -188,20 +201,15 @@ contract TokenFarm is Ownable {
         StakeItem memory item = items[index];
         require(msg.sender != address(0), 'sender cannot be the zero address');
         require(item.owner == msg.sender, 'sender is not owner of this stake item');
-        require(item.end <= block.timestamp && item.amount > 0 && item.rewarded == 0, 'stake not ready to issue token');
+        require(item.end <= block.timestamp && item.amount > 0 && item.running, 'stake not ready to issue token');
 
         emit IssueToken(item);
 
+        items[index].running = false;
         uint256 total = (item.amount * (100 + item.interest)) / 100;
         disatok.transfer(item.owner, total);
+
         //Remove from balance
-
         balance[item.owner] = balance[item.owner] - item.amount;
-        item.rewarded = block.timestamp;
-        itemsRewarded.push(item);
-
-        delete items[index];
-        items[index] = items[items.length - 1];
-        items.pop();
     }
 }
