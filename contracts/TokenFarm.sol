@@ -89,6 +89,7 @@ contract TokenFarm is Ownable {
         // add user to stakers array *only* if they haven't staked already
         if (!hasStaked[msg.sender]) {
             stakers.push(msg.sender);
+            hasStaked[msg.sender] = true;
         }
 
         return true;
