@@ -10,6 +10,7 @@ pragma solidity >=0.8.10;
 import './IERC20.sol';
 import './extensions/IERC20Metadata.sol';
 import './contracts/Ownable.sol';
+import './utils/Strings.sol';
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -176,7 +177,7 @@ contract Disatok is Ownable, IERC20, IERC20Metadata {
         uint256 transferAmount = _transfer(sender, recipient, amount);
 
         uint256 currentAllowance = _allowances[sender][_msgSender()];
-        require(currentAllowance >= transferAmount, 'ERC20: transfer amount exceeds allowance');
+        require(currentAllowance >= transferAmount, 'transfer amount exceeds allowance');
         unchecked {
             _approve(sender, _msgSender(), currentAllowance - transferAmount);
         }
@@ -203,8 +204,8 @@ contract Disatok is Ownable, IERC20, IERC20Metadata {
         address recipient,
         uint256 amount
     ) internal virtual returns (uint256) {
-        require(sender != address(0), 'ERC20: transfer from the zero address');
-        require(recipient != address(0), 'ERC20: transfer to the zero address');
+        require(sender != address(0), 'transfer from the zero address');
+        require(recipient != address(0), 'transfer to the zero address');
 
         // delete
         //_beforeTokenTransfer(sender, recipient, amount);
@@ -213,7 +214,7 @@ contract Disatok is Ownable, IERC20, IERC20Metadata {
         bool noFee = isExcludedFromFee(sender) || isExcludedFromFee(recipient);
 
         if (noFee) {
-            require(senderBalance >= amount, 'ERC20: transfer amount exceeds balance');
+            require(senderBalance >= amount, 'transfer amount exceeds balance');
             unchecked {
                 _balances[sender] = senderBalance - amount;
             }
@@ -224,7 +225,8 @@ contract Disatok is Ownable, IERC20, IERC20Metadata {
             uint256 senderAmount = amount + fee;
             transferAmount = senderAmount;
 
-            require(senderBalance >= senderAmount, 'ERC20: transfer amount exceeds balance, transfer amount incl. fee is');
+            string memory errorMessage = string(abi.encodePacked('transfer amount exceeds balance. transfer amount incl. sales fee is', ' ', Strings.toString(transferAmount)));
+            require(senderBalance >= senderAmount, errorMessage);
 
             unchecked {
                 _balances[sender] = senderBalance - senderAmount;
@@ -258,8 +260,8 @@ contract Disatok is Ownable, IERC20, IERC20Metadata {
         address spender,
         uint256 amount
     ) internal virtual {
-        require(owner != address(0), 'ERC20: approve from the zero address');
-        require(spender != address(0), 'ERC20: approve to the zero address');
+        require(owner != address(0), 'approve from the zero address');
+        require(spender != address(0), 'approve to the zero address');
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);

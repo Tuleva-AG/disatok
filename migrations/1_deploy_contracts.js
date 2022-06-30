@@ -23,7 +23,7 @@ module.exports = async function(deployer, network, accounts) {
 
 	console.log(`Migrations deployed tokenFarm: ${tokenFarm.address}`);
 
-	disatok.excludeFromFee(TokenFarm.address);
+	await disatok.excludeFromFee(TokenFarm.address);
 
 	// Transfer 100 Mock DISA tokens to investor
 	// await disatok.transfer(accounts[0], '10000000000');

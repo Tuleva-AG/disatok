@@ -107,7 +107,7 @@ contract("Disatok", accounts => {
       await disatokInstance.transfer(receiver, amount, {from: sender});
     }
     catch (err) {
-      assert.include(err.message, "revert ERC20: transfer amount exceeds balance", "The error message should contain 'revert ERC20: transfer amount exceeds balance'");
+      assert.include(err.message, "revert transfer amount exceeds balance", "The error message should contain 'revert transfer amount exceeds balance'");
     }
     
     const balanceSenderAfter = await disatokInstance.balanceOf(sender);
@@ -144,6 +144,33 @@ contract("Disatok", accounts => {
     assert.equal(balanceSenderAfter - balanceSenderBefore, (amount + feeAmount)*-1, "difference sender: " + (amount*-1));
     assert.equal(balanceReceiverAfter - balanceReceiverBefore, amount, "difference receiver: " + (amount));
     assert.equal(balanceFeeAfter - balanceFeeBefore, feeAmount, "difference fee: " + (feeAmount));
+
+  });
+
+  it("transfer 50 from user1 to user2 error because of fee (transaction excpected to throw)", async () => {
+
+    const sender = userAccount1;
+    const receiver = userAccount2;
+    const amount = 5000000000;
+
+    const balanceSenderBefore = await disatokInstance.balanceOf(sender);
+    const balanceReceiverBefore = await disatokInstance.balanceOf(receiver);
+    const balanceFeeBefore = await disatokInstance.balanceOf(feeAccount);
+    
+    try{
+      await disatokInstance.transfer(receiver, amount, {from: sender});
+    }
+    catch (err) {
+      assert.include(err.message, "revert transfer amount exceeds balance. transfer amount incl. sales fee is 5150000000", "The error message should contain 'revert transfer amount exceeds balance. transfer amount incl. sales fee is 5150000000'");
+    }
+    
+    const balanceSenderAfter = await disatokInstance.balanceOf(sender);
+    const balanceReceiverAfter = await disatokInstance.balanceOf(receiver);
+    const balanceFeeAfter = await disatokInstance.balanceOf(feeAccount);
+
+    assert.equal(balanceSenderAfter - balanceSenderBefore, 0, "difference sender: " + (amount*-1));
+    assert.equal(balanceReceiverAfter - balanceReceiverBefore, 0, "difference receiver: " + (amount));
+    assert.equal(balanceFeeAfter - balanceFeeBefore, 0, "difference fee: " + (0));
 
   });
   
@@ -396,7 +423,7 @@ contract("Disatok", accounts => {
       await disatokInstance.transferFrom(sender, receiver, amount, {from: from});
     }
     catch (err) {
-      assert.include(err.message, "revert ERC20: transfer amount exceeds allowance", "The error message should contain 'revert ERC20: transfer amount exceeds allowance'");
+      assert.include(err.message, "revert transfer amount exceeds allowance", "The error message should contain 'revert transfer amount exceeds allowance'");
     }
     
   });
@@ -423,7 +450,7 @@ contract("Disatok", accounts => {
       await disatokInstance.transferFrom(approver, receiver, (amount + 1), { from: spender});
     }
     catch (err) {
-      assert.include(err.message, "revert ERC20: transfer amount exceeds allowance", "The error message should contain 'revert ERC20: transfer amount exceeds allowance'");
+      assert.include(err.message, "revert transfer amount exceeds allowance", "The error message should contain 'revert transfer amount exceeds allowance'");
     }
 
     const balanceSenderBefore = await disatokInstance.balanceOf(approver);
@@ -450,7 +477,7 @@ contract("Disatok", accounts => {
       await disatokInstance.transferFrom(approver, receiver, (1), { from: spender});
     }
     catch (err) {
-      assert.include(err.message, "revert ERC20: transfer amount exceeds allowance", "The error message should contain 'revert ERC20: transfer amount exceeds allowance'");
+      assert.include(err.message, "revert transfer amount exceeds allowance", "The error message should contain 'revert transfer amount exceeds allowance'");
     }
 
   });
@@ -477,7 +504,7 @@ contract("Disatok", accounts => {
       await disatokInstance.transferFrom(approver, receiver, ((amount + feeAmount) + 1), { from: spender});
     }
     catch (err) {
-      assert.include(err.message, "revert ERC20: transfer amount exceeds allowance", "The error message should contain 'revert ERC20: transfer amount exceeds allowance'");
+      assert.include(err.message, "revert transfer amount exceeds allowance", "The error message should contain 'revert transfer amount exceeds allowance'");
     }
 
     const balanceSenderBefore = await disatokInstance.balanceOf(approver);
@@ -505,7 +532,7 @@ contract("Disatok", accounts => {
       await disatokInstance.transferFrom(approver, receiver, (1), { from: spender});
     }
     catch (err) {
-      assert.include(err.message, "revert ERC20: transfer amount exceeds allowance", "The error message should contain 'revert ERC20: transfer amount exceeds allowance'");
+      assert.include(err.message, "revert transfer amount exceeds allowance", "The error message should contain 'revert transfer amount exceeds allowance'");
     }
 
   });
